@@ -1,18 +1,15 @@
 import { Link, Outlet } from "react-router-dom";
 
 export default function Layout() {
-  const navStyle = { padding: '20px', background: '#1a1a1a', color: 'white', display: 'flex', gap: '15px' };
-  const linkStyle = { color: 'white', textDecoration: 'none', fontWeight: 'bold' };
-
   return (
     <div>
-      <nav style={navStyle}>
-        <Link to="/" style={linkStyle}>Home</Link>
-        <Link to="/filmes" style={linkStyle}>Catálogo</Link>
-        <Link to="/sobre" style={linkStyle}>Sobre a Equipe</Link>
-        <Link to="/cadastro" style={linkStyle}>Cadastro</Link>
+      <nav className="navbar">
+        <Link to="/" className="nav-link">Home</Link>
+        <Link to="/filmes" className="nav-link">Catálogo</Link>
+        <Link to="/sobre" className="nav-link">Equipe</Link>
+        <Link to="/cadastro" className="nav-link">Cadastro</Link>
       </nav>
-      <div style={{ padding: '20px' }}>
+      <div className="content-container">
         <Outlet />
       </div>
     </div>
