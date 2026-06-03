@@ -1,5 +1,5 @@
 export const filmeService = {
-  // Função que busca filmes de uma API externa (Aula 07)
+  // Função que busca filmes de uma API externa e os adapta para o formato do catálogo
   async listarTodos() {
     // Buscando dados de uma URL externa via GET
     const response = await fetch("https://jsonplaceholder.typicode.com/posts?_limit=6");

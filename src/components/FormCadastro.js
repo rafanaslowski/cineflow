@@ -1,7 +1,7 @@
 import { useState } from "react"; // ADICIONADO: Importação do Hook
 
 export default function FormCadastro() {
-  // ADICIONADO: Gerenciamento de estado (Aula 05)
+  // ADICIONADO: Gerenciamento de estado para os campos do formulário
   const [formData, setFormData] = useState({
     titulo: "",
     genero: "",
@@ -9,7 +9,7 @@ export default function FormCadastro() {
     capa: ""
   });
 
-  // ADICIONADO: Manipulação de dados (Aula 05)
+  // ADICIONADO: Manipulação de dados do formulário
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -21,7 +21,7 @@ export default function FormCadastro() {
     // Mostra no console os dados que foram capturados pelo estado
     console.log("Dados salvos no estado:", formData);
     
-    alert("Filme enviado para análise!"); // MANTIDO: Sua mensagem original
+    alert("Filme enviado para análise!"); 
   };
 
   return (
@@ -67,7 +67,7 @@ export default function FormCadastro() {
         </button>
       </form>
 
-      {/* ADICIONADO: Apenas para você ver o estado mudando enquanto digita (Opcional) */}
+      {/* ADICIONADO: Apenas para você ver o estado mudando enquanto digita */}
       <div style={{ color: 'gray', fontSize: '12px', textAlign: 'center', marginTop: '10px' }}>
         Editando: {formData.titulo}
       </div>
