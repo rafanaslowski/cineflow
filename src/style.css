@@ -85,3 +85,22 @@ body {
   gap: 20px;               
   padding: 20px;
 }
+/* Adições para o formulário de usuário */
+.erro-texto {
+  color: #ff3333;
+  font-size: 12px;
+  display: block;
+  margin-top: 4px;
+  text-align: left;
+}
+
+.endereco-box {
+  background-color: #f1f1f1;
+  padding: 10px;
+  border-left: 4px solid #0D21A1;
+  border-radius: 5px;
+  font-size: 14px;
+  text-align: left;
+  width: 100%;
+  box-sizing: border-box;
+}

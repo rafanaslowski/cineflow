@@ -1,19 +1,28 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
+// ALTERADO: Importando ferramentas para navegação interna e para ler o contexto global
+import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../contexts/AuthContext";
 import '../style.css';
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  
+  // ALTERADO: Inicializando o redirecionador do React Router e consumindo a função global
+  const navigate = useNavigate();
+  const { loginSecreto } = useContext(AuthContext);
 
   const handleLogin = (e) => {
     e.preventDefault();
     
-    // Simulação de autenticação com dados fixos para o trabalho
-    if (email === "admin@cineflow.com" && senha === "123456") {
-      // Guarda o token no localStorage para simular o login (Segurança)
-      localStorage.setItem("token_jwt", "mocked-jwt-token-xyz123");
-      alert("Login realizado com sucesso!");
-      window.location.href = "/catalogo"; // Redireciona para o catálogo
+    // MODIFICADO: Agora chamamos o método do AuthContext (Slide 09)
+    const logadoComSucesso = loginSecreto(email, senha);
+
+    if (logadoComSucesso) {
+      alert("Login realizado com sucesso via Contexto Global!");
+      
+      // ALTERADO: Redireciona o usuário direto para a página de Cadastro, que antes estava bloqueada!
+      navigate("/cadastro"); 
     } else {
       alert("E-mail ou senha incorretos!");
     }

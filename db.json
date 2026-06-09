@@ -13,6 +13,13 @@
       "ano": "1996",
       "capa": "https://upload.wikimedia.org/wikipedia/pt/3/34/Norbit.jpg",
       "id": "lx6Bip3Ajr8"
+    },
+    {
+      "titulo": "Fagun",
+      "genero": "Alfa",
+      "ano": "1888",
+      "capa": "https://upload.wikimedia.org/wikipedia/pt/3/34/Norbit.jpg",
+      "id": "y8QdMPy7oYY"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"
