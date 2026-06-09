@@ -1,7 +1,7 @@
-import { useState } from "react"; // ADICIONADO: Importação do Hook
+import { useState } from "react"; // Importação do Hook
 
 export default function FormCadastro() {
-  // ADICIONADO: Gerenciamento de estado para os campos do formulário
+  // Gerenciamento de estado para os campos do formulário
   const [formData, setFormData] = useState({
     titulo: "",
     genero: "",
@@ -9,7 +9,7 @@ export default function FormCadastro() {
     capa: ""
   });
 
-  // ADICIONADO: Manipulação de dados do formulário
+  // Manipulação de dados do formulário
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -18,17 +18,30 @@ export default function FormCadastro() {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Mostra no console os dados que foram capturados pelo estado
-    console.log("Dados salvos no estado:", formData);
+    // =========================================================================
+    // RA3 - ADICIONADO: PERSISTÊNCIA DE DADOS (localStorage)
+    // =========================================================================
     
-    alert("Filme enviado para análise!"); 
+    // 1. Busca a lista de filmes que já existe no navegador. Se não existir, cria um array vazio []
+    const filmesSalvos = JSON.parse(localStorage.getItem("meusFilmes")) || [];
+    
+    // 2. Adiciona o novo filme (formData) que você acabou de preencher na lista
+    filmesSalvos.push(formData);
+    
+    // 3. Salva a lista de volta no navegador convertida em texto (String)
+    localStorage.setItem("meusFilmes", JSON.stringify(filmesSalvos));
+    
+    // Feedback de usabilidade para o usuário
+    alert("Filme cadastrado com sucesso e salvo no sistema!"); 
+    
+    // Limpa o formulário para um próximo cadastro
+    setFormData({ titulo: "", genero: "", ano: "", capa: "" });
   };
 
   return (
     <div>
       <h2 style={{ textAlign: 'center' }}>Cadastrar Novo Filme</h2>
       <form onSubmit={handleSubmit} className="form-cadastro">
-        {/* ADICIONADO: name, value e onChange em cada campo abaixo */}
         <input 
           name="titulo"
           type="text" 
@@ -67,7 +80,6 @@ export default function FormCadastro() {
         </button>
       </form>
 
-      {/* ADICIONADO: Apenas para você ver o estado mudando enquanto digita */}
       <div style={{ color: 'gray', fontSize: '12px', textAlign: 'center', marginTop: '10px' }}>
         Editando: {formData.titulo}
       </div>

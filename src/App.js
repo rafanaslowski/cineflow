@@ -4,6 +4,7 @@ import Home from "./pages/Home";
 import FilmesPage from "./pages/FilmesPage";
 import SobrePage from "./pages/SobrePage";
 import FormCadastro from "./components/FormCadastro";
+import LoginPage from "./pages/LoginPage";
 import './style.css';
 
 export default function App() {
@@ -15,8 +16,11 @@ export default function App() {
           <Route path="filmes" element={<FilmesPage />} />
           <Route path="sobre" element={<SobrePage />} />
           <Route path="cadastro" element={<FormCadastro />} />
+          <Route path="login" element={<LoginPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
   );
 }
+
+
