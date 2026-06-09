@@ -1,4 +1,6 @@
-import { useState } from "react"; // Importação do Hook
+import { useState } from "react"; 
+// ALTERADO: Importando o serviço de filmes para conectar com o banco de dados
+import { filmeService } from "../services/filmeService";
 
 export default function FormCadastro() {
   // Gerenciamento de estado para os campos do formulário
@@ -9,7 +11,6 @@ export default function FormCadastro() {
     capa: ""
   });
 
-  // AJUSTE 1: Inicializado como objeto {} e não array []
   const [erros, setErros] = useState({}); 
 
   const handleChange = (e) => {
@@ -27,12 +28,13 @@ export default function FormCadastro() {
     const errosValidacao = {};
     const anoAtual = new Date().getFullYear();
 
-    //Valida Titulo e Genero
     if (!formData.titulo.trim()) errosValidacao.titulo = "O título é obrigatório.";
     if (!formData.genero.trim()) errosValidacao.genero = "O gênero é obrigatório.";
 
-    // AJUSTE 2: Removida a negação "!" da frente do formData.ano
-    if (formData.ano < 1888 || formData.ano > anoAtual + 5) {
+    // Valida o preenchimento do ano antes de verificar o intervalo
+    if (!formData.ano) {
+      errosValidacao.ano = "O ano é obrigatório.";
+    } else if (formData.ano < 1888 || formData.ano > anoAtual + 5) {
       errosValidacao.ano = `O ano deve ser entre 1888 e ${anoAtual + 5}.`;
     }
 
@@ -44,31 +46,30 @@ export default function FormCadastro() {
     }
 
     setErros(errosValidacao);
-    return Object.keys(errosValidacao).length === 0; // Retorna true se não houver erros
+    return Object.keys(errosValidacao).length === 0; 
   };
 
-  const handleSubmit = (e) => {
+  // ALTERADO: A função agora é assíncrona (async) porque se conecta com o Banco de Dados externo
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    //Chama a função de validação antes de salvar os dados
+    // Chama a função de validação antes de salvar os dados
     if (!validarFormulario()) {
-      return; // Se houver erros, não prossegue com o cadastro
+      return; 
     }
 
-    // 1. Busca a lista de filmes que já existe no navegador. Se não existir, cria um array vazio []
-    const filmesSalvos = JSON.parse(localStorage.getItem("meusFilmes")) || [];
+    try {
+      // MODIFICADO: Removemos o localStorage e enviamos diretamente para a Database (db.json) via Axios
+      await  filmeService.cadastrar(formData);
 
-    // 2. Adiciona o novo filme (formData) que você acabou de preencher na lista
-    filmesSalvos.push(formData);
+      // Feedback de usabilidade para o usuário informando o sucesso no Banco real
+      alert("Filme cadastrado com sucesso diretamente no Banco de Dados (db.json)!");
 
-    // 3. Salva a lista de volta no navegador convertida em texto (String)
-    localStorage.setItem("meusFilmes", JSON.stringify(filmesSalvos));
-
-    // Feedback de usabilidade para o usuário
-    alert("Filme cadastrado com sucesso e salvo no sistema!");
-
-    // Limpa o formulário para um próximo cadastro
-    setFormData({ titulo: "", genero: "", ano: "", capa: "" });
+      // Limpa o formulário para um próximo cadastro
+      setFormData({ titulo: "", genero: "", ano: "", capa: "" });
+    } catch (error) {
+      alert("Erro ao salvar o filme. Verifique se o terminal do json-server está ligado na porta 3001!");
+    }
   };
 
   return (
@@ -76,7 +77,6 @@ export default function FormCadastro() {
       <h2 style={{ textAlign: 'center' }}>Cadastrar Novo Filme</h2>
       <form onSubmit={handleSubmit} className="form-cadastro" noValidate>
         
-        {/* AJUSTE 3: Adicionado spans para renderizar as mensagens de erro na tela */}
         <div style={{ width: '100%' }}>
           <input 
             name="titulo"

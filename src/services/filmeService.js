@@ -1,4 +1,9 @@
+import axios from 'axios';
+
 const API_KEY = "f8c262a3375db70e1589ff0891021d4c"; 
+
+// URL do nosso banco de dados local (JSON Server) criado na porta 3001
+const URL_BANCO_LOCAL = "http://localhost:3001/filmes";
 
 // Dicionário mapeando os IDs numéricos do TMDB para os nomes em português
 const MAPEAMENTO_GENEROS = {
@@ -10,37 +15,63 @@ const MAPEAMENTO_GENEROS = {
 };
 
 export const filmeService = {
+  // 1. ALTERADO: Agora lista os filmes do TMDB e junta com os do seu Banco Local (db.json)
   async listarTodos() {
-    // Buscando os filmes populares do momento
-    const url = `https://api.themoviedb.org/3/movie/popular?api_key=${API_KEY}&language=pt-BR&page=1`;
-    
-    const response = await fetch(url);
+    try {
+      // --- PARTE A: BUSCANDO DO BANCO DE DADOS LOCAL (db.json) via AXIOS ---
+      let filmesLocais = [];
+      try {
+        const responseLocal = await axios.get(URL_BANCO_LOCAL);
+        filmesLocais = responseLocal.data; // Pega os filmes que VOCÊ cadastrou
+      } catch (errLocal) {
+        console.error("Aviso: json-server desligado. Mostrando apenas TMDB.", errLocal);
+      }
 
-    if (!response.ok) {
-      throw new Error("Erro ao buscar filmes no TMDB");
+      // --- PARTE B: BUSCANDO DA API EXTERNA (TMDB) via FETCH ---
+      const urlTMDB = `https://api.themoviedb.org/3/movie/popular?api_key=${API_KEY}&language=pt-BR&page=1`;
+      const responseTMDB = await fetch(urlTMDB);
+
+      if (!responseTMDB.ok) {
+        throw new Error("Erro ao buscar filmes no TMDB");
+      }
+      
+      const dadosTMDB = await responseTMDB.json();
+      
+      const filmesTMDB = dadosTMDB.results.map(item => {
+        const nomeFilme = item.title;
+        const primeiroIdGenero = item.genre_ids && item.genre_ids[0];
+        const generoDinamico = MAPEAMENTO_GENEROS[primeiroIdGenero] || "Cinema";
+        const anoLancamento = item.release_date ? item.release_date.split("-")[0] : "2026";
+
+        return {
+          titulo: nomeFilme,
+          genero: generoDinamico,
+          ano: anoLancamento,
+          capa: item.poster_path 
+            ? `https://image.tmdb.org/t/p/w500${item.poster_path}` 
+            : "https://via.placeholder.com/500x750?text=Sem+Capa"
+        };
+      });
+
+      // --- PARTE C: UNIFICAÇÃO (Garantia de Consistência Geral) ---
+      // Retorna uma lista só: seus cadastros primeiro, seguidos pelos do TMDB
+      return [...filmesLocais, ...filmesTMDB];
+
+    } catch (error) {
+      console.error("Erro geral no serviço de filmes:", error);
+      return [];
     }
-    
-    const dados = await response.json();
-    
-    return dados.results.map(item => {
+  },
 
-      const nomeFilme = item.title;
-
-      // 2. RESOLVENDO O GÊNERO DINÂMICO: Pega o primeiro ID da lista e busca no nosso dicionário
-      const primeiroIdGenero = item.genre_ids && item.genre_ids[0];
-      const generoDinamico = MAPEAMENTO_GENEROS[primeiroIdGenero] || "Cinema";
-
-      // 3. RESOLVENDO O ANO DINÂMICO
-      const anoLancamento = item.release_date ? item.release_date.split("-")[0] : "2026";
-
-      return {
-        titulo: nomeFilme,
-        genero: generoDinamico, // Agora exibe "Ação", "Terror", "Suspense", etc.
-        ano: anoLancamento,
-        capa: item.poster_path 
-          ? `https://image.tmdb.org/t/p/w500${item.poster_path}` 
-          : "https://via.placeholder.com/500x750?text=Sem+Capa"
-      };
-    });
+  // 2. NOVO MÉTODO: Envia o filme do formulário direto para o seu Banco de Dados (db.json)
+  async cadastrar(novoFilme) {
+    try {
+      // Faz um POST enviando os dados para a porta 3001 do json-server (Slide 07)
+      const response = await axios.post(URL_BANCO_LOCAL, novoFilme);
+      return response.data;
+    } catch (error) {
+      console.error("Erro ao cadastrar filme no db.json:", error);
+      throw error;
+    }
   }
 };
