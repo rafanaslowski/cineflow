@@ -120,3 +120,27 @@ body {
 .form-cadastro input:invalid {
   border-color: #ff3333;
 }
+
+/* Mensagens de Feedback customizadas para o RA3 */
+.alerta-container {
+  padding: 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  margin-bottom: 15px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.alerta-sucesso {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.alerta-erro {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}

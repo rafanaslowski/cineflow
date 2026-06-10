@@ -11,6 +11,9 @@ export default function FormCadastro() {
 
   const [erros, setErros] = useState({});
 
+  // ⚡ ADICIONADO APENAS ESTE ESTADO: Para gerenciar a mensagem interna na UI
+  const [feedback, setFeedback] = useState({ texto: "", tipo: "" });
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -74,6 +77,9 @@ export default function FormCadastro() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Limpa feedbacks anteriores antes de uma nova tentativa
+    setFeedback({ texto: "", tipo: "" });
+
     if (!validarFormulario()) {
       return;
     }
@@ -81,7 +87,8 @@ export default function FormCadastro() {
     try {
       await filmeService.cadastrar(formData);
 
-      alert("Filme cadastrado com sucesso!");
+      // 🔄 ALTERADO: Em vez de alert(), define o feedback de sucesso na tela
+      setFeedback({ texto: "Filme cadastrado com sucesso!", tipo: "sucesso" });
 
       setFormData({
         titulo: "",
@@ -91,9 +98,13 @@ export default function FormCadastro() {
       });
 
       document.querySelector('input[type="file"]').value = "";
+      
+      // Remove o aviso verde após 4 segundos automaticamente
+      setTimeout(() => setFeedback({ texto: "", tipo: "" }), 4000);
     } catch (error) {
       console.error(error);
-      alert("Erro ao salvar o filme.");
+      // 🔄 ALTERADO: Em vez de alert(), define o feedback de erro na tela
+      setFeedback({ texto: "Erro ao salvar o filme.", tipo: "erro" });
     }
   };
 
@@ -108,6 +119,13 @@ export default function FormCadastro() {
         className="form-cadastro"
         noValidate
       >
+        {/* 🔄 ADICIONADO: Caixa de mensagem dinâmica que aparece sem travar o navegador */}
+        {feedback.texto && (
+          <div className={`alerta-container alerta-${feedback.tipo}`}>
+            {feedback.texto}
+          </div>
+        )}
+
         <div style={{ width: "100%" }}>
           <input
             name="titulo"
@@ -236,7 +254,7 @@ export default function FormCadastro() {
           marginTop: "10px"
         }}
       >
-        Editando: {formData.titulo}
+        
       </div>
     </div>
   );

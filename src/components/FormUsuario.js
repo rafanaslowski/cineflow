@@ -16,6 +16,9 @@ export default function FormUsuario() {
   const [erros, setErros] = useState({});
   const [carregandoCep, setCarregandoCep] = useState(false);
 
+  // ⚡ ADICIONADO APENAS ESTE ESTADO: Controla a exibição do alerta na UI
+  const [feedback, setFeedback] = useState({ texto: "", tipo: "" });
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     
@@ -24,7 +27,7 @@ export default function FormUsuario() {
       const apenasLetras = value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s]/g, "");
       setFormData({ ...formData, nome: apenasLetras });
     }
-    // MÁSCARA DO CPF
+    // 🔢 MÁSCARA DO CPF
     else if (name === "cpf") {
       const cpfMascarado = value
         .replace(/\D/g, "") 
@@ -144,27 +147,44 @@ export default function FormUsuario() {
     return Object.keys(errosValidacao).length === 0;
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  if (!validarFormulario()) return;
-
-  try {
-    // Envia o formData original. O backend já espera logradouro, bairro, cidade e senha!
-    await axios.post("http://localhost:3001/usuarios", formData);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     
-    alert(`Usuário ${formData.nome} cadastrado com sucesso!`);
-    setFormData({ nome: "", cpf: "", email: "", senha: "", cep: "", logradouro: "", bairro: "", cidade: "" });
-  } catch (error) {
-    console.error("Erro ao salvar usuário:", error);
-    alert("Erro ao conectar com o banco de dados local.");
-  }
-};
+    // Limpa feedbacks de tentativas anteriores
+    setFeedback({ texto: "", tipo: "" });
+
+    if (!validarFormulario()) return;
+
+    try {
+      // Envia o formData original para a sua API em Node.js vinculada ao MySQL
+      await axios.post("http://localhost:3001/usuarios", formData);
+      
+      // 🔄 ALTERADO: Armazena o aviso de sucesso no estado de feedback
+      setFeedback({ texto: `Usuário ${formData.nome} cadastrado com sucesso!`, tipo: "sucesso" });
+      
+      setFormData({ nome: "", cpf: "", email: "", senha: "", cep: "", logradouro: "", bairro: "", cidade: "" });
+      
+      // Apaga o aviso verde da tela após 4 segundos
+      setTimeout(() => setFeedback({ texto: "", tipo: "" }), 4000);
+    } catch (error) {
+      console.error("Erro ao salvar usuário:", error);
+      // 🔄 ALTERADO: Armazena o aviso de erro no estado de feedback
+      setFeedback({ texto: "Erro ao conectar com o banco de dados. O usuário não foi cadastrado.", tipo: "erro" });
+    }
+  };
 
   return (
     <div className="container">
       {/* ALTERADO: Adicionado noValidate para desativar validações padrão do navegador */}
       <form onSubmit={handleSubmit} className="form-cadastro" style={{ marginTop: "30px", color: "#141414" }} noValidate>
         <h2 style={{ textAlign: 'center', margin: "0 0 10px 0" }}>Cadastro de Usuário</h2>
+        
+        {/* 🔄 ADICIONADO: Renderiza o alerta contextual embutido de sucesso ou erro */}
+        {feedback.texto && (
+          <div className={`alerta-container alerta-${feedback.tipo}`}>
+            {feedback.texto}
+          </div>
+        )}
         
         {/* Campo Nome */}
         <div style={{ width: '100%' }}>
