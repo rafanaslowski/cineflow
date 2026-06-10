@@ -1,8 +1,12 @@
 import { useState } from "react";
 import { filmeService } from "../services/filmeService";
+import { useFeedback } from "../hooks/useFeedback"; 
+// 1. Importar o seu novo hook useForm
+import { useForm } from "../hooks/useForm"; 
 
 export default function FormCadastro() {
-  const [formData, setFormData] = useState({
+  // 2. Inicializar o useForm com os campos vazios
+  const { formData, setFormData, handleChange, resetForm } = useForm({
     titulo: "",
     genero: "",
     ano: "",
@@ -10,25 +14,9 @@ export default function FormCadastro() {
   });
 
   const [erros, setErros] = useState({});
+  const { feedback, mostrarFeedback, limparFeedback } = useFeedback();
 
-  // ⚡ ADICIONADO APENAS ESTE ESTADO: Para gerenciar a mensagem interna na UI
-  const [feedback, setFeedback] = useState({ texto: "", tipo: "" });
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    setFormData({
-      ...formData,
-      [name]: value
-    });
-
-    if (erros[name]) {
-      setErros({
-        ...erros,
-        [name]: ""
-      });
-    }
-  };
+  // 💡 A função handleChange antiga FOI APAGADA daqui porque o useForm já faz isso!
 
   const handleImagem = (e) => {
     const arquivo = e.target.files[0];
@@ -38,6 +26,7 @@ export default function FormCadastro() {
     const reader = new FileReader();
 
     reader.onloadend = () => {
+      // Usamos o setFormData do hook para atualizar a string da imagem em Base64
       setFormData((prev) => ({
         ...prev,
         capa: reader.result
@@ -77,8 +66,7 @@ export default function FormCadastro() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Limpa feedbacks anteriores antes de uma nova tentativa
-    setFeedback({ texto: "", tipo: "" });
+    limparFeedback();
 
     if (!validarFormulario()) {
       return;
@@ -87,24 +75,15 @@ export default function FormCadastro() {
     try {
       await filmeService.cadastrar(formData);
 
-      // 🔄 ALTERADO: Em vez de alert(), define o feedback de sucesso na tela
-      setFeedback({ texto: "Filme cadastrado com sucesso!", tipo: "sucesso" });
+      mostrarFeedback("Filme cadastrado com sucesso!", "sucesso");
 
-      setFormData({
-        titulo: "",
-        genero: "",
-        ano: "",
-        capa: ""
-      });
+      // 3. Usar a função resetForm do hook para limpar os campos de texto
+      resetForm();
 
       document.querySelector('input[type="file"]').value = "";
-      
-      // Remove o aviso verde após 4 segundos automaticamente
-      setTimeout(() => setFeedback({ texto: "", tipo: "" }), 4000);
     } catch (error) {
       console.error(error);
-      // 🔄 ALTERADO: Em vez de alert(), define o feedback de erro na tela
-      setFeedback({ texto: "Erro ao salvar o filme.", tipo: "erro" });
+      mostrarFeedback("Erro ao salvar o filme.", "erro");
     }
   };
 
@@ -114,12 +93,7 @@ export default function FormCadastro() {
         Cadastrar Novo Filme
       </h2>
 
-      <form
-        onSubmit={handleSubmit}
-        className="form-cadastro"
-        noValidate
-      >
-        {/* 🔄 ADICIONADO: Caixa de mensagem dinâmica que aparece sem travar o navegador */}
+      <form onSubmit={handleSubmit} className="form-cadastro" noValidate>
         {feedback.texto && (
           <div className={`alerta-container alerta-${feedback.tipo}`}>
             {feedback.texto}
@@ -132,23 +106,12 @@ export default function FormCadastro() {
             type="text"
             placeholder="Título do Filme"
             value={formData.titulo}
-            onChange={handleChange}
+            onChange={handleChange} // Continua funcionando igual!
             required
-            style={{
-              width: "100%",
-              boxSizing: "border-box"
-            }}
+            style={{ width: "100%", boxSizing: "border-box" }}
           />
-
           {erros.titulo && (
-            <span
-              style={{
-                color: "red",
-                fontSize: "12px",
-                display: "block",
-                marginTop: "4px"
-              }}
-            >
+            <span style={{ color: "red", fontSize: "12px", display: "block", marginTop: "4px" }}>
               {erros.titulo}
             </span>
           )}
@@ -160,23 +123,12 @@ export default function FormCadastro() {
             type="text"
             placeholder="Gênero"
             value={formData.genero}
-            onChange={handleChange}
+            onChange={handleChange} // Continua funcionando igual!
             required
-            style={{
-              width: "100%",
-              boxSizing: "border-box"
-            }}
+            style={{ width: "100%", boxSizing: "border-box" }}
           />
-
           {erros.genero && (
-            <span
-              style={{
-                color: "red",
-                fontSize: "12px",
-                display: "block",
-                marginTop: "4px"
-              }}
-            >
+            <span style={{ color: "red", fontSize: "12px", display: "block", marginTop: "4px" }}>
               {erros.genero}
             </span>
           )}
@@ -188,23 +140,12 @@ export default function FormCadastro() {
             type="number"
             placeholder="Ano de Lançamento"
             value={formData.ano}
-            onChange={handleChange}
+            onChange={handleChange} // Continua funcionando igual!
             required
-            style={{
-              width: "100%",
-              boxSizing: "border-box"
-            }}
+            style={{ width: "100%", boxSizing: "border-box" }}
           />
-
           {erros.ano && (
-            <span
-              style={{
-                color: "red",
-                fontSize: "12px",
-                display: "block",
-                marginTop: "4px"
-              }}
-            >
+            <span style={{ color: "red", fontSize: "12px", display: "block", marginTop: "4px" }}>
               {erros.ano}
             </span>
           )}
@@ -217,45 +158,19 @@ export default function FormCadastro() {
             accept="image/*"
             onChange={handleImagem}
             required
-            style={{
-              width: "100%",
-              boxSizing: "border-box"
-            }}
+            style={{ width: "100%", boxSizing: "border-box" }}
           />
-
           {erros.capa && (
-            <span
-              style={{
-                color: "red",
-                fontSize: "12px",
-                display: "block",
-                marginTop: "4px"
-              }}
-            >
+            <span style={{ color: "red", fontSize: "12px", display: "block", marginTop: "4px" }}>
               {erros.capa}
             </span>
           )}
         </div>
 
-        <button
-          type="submit"
-          className="btn-submit"
-          style={{ marginTop: "10px" }}
-        >
+        <button type="submit" className="btn-submit" style={{ marginTop: "10px" }}>
           Cadastrar Filme
         </button>
       </form>
-
-      <div
-        style={{
-          color: "gray",
-          fontSize: "12px",
-          textAlign: "center",
-          marginTop: "10px"
-        }}
-      >
-        
-      </div>
     </div>
   );
 }

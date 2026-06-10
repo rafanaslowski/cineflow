@@ -1,8 +1,12 @@
 import { useState } from "react";
 import axios from "axios";
+import { useFeedback } from "../hooks/useFeedback";
+// 1. Importar o hook useForm
+import { useForm } from "../hooks/useForm";
 
 export default function FormUsuario() {
-  const [formData, setFormData] = useState({
+  // 2. Inicializar o useForm com os campos do usuário
+  const { formData, setFormData, handleChange, resetForm } = useForm({
     nome: "",
     cpf: "",
     email: "",
@@ -15,32 +19,32 @@ export default function FormUsuario() {
 
   const [erros, setErros] = useState({});
   const [carregandoCep, setCarregandoCep] = useState(false);
+  const { feedback, mostrarFeedback, limparFeedback } = useFeedback();
 
-  // ⚡ ADICIONADO APENAS ESTE ESTADO: Controla a exibição do alerta na UI
-  const [feedback, setFeedback] = useState({ texto: "", tipo: "" });
-
-  const handleChange = (e) => {
+  // 3. Criamos uma função customizada de mudança para interceptar as regras do Nome e CPF
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
     
-    // 🚫 BLOQUEIO EM TEMPO DE EXECUÇÃO PARA O NOME
+    // Regra: Bloquear números e caracteres especiais no nome
     if (name === "nome") {
       const apenasLetras = value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s]/g, "");
-      setFormData({ ...formData, nome: apenasLetras });
+      setFormData((prev) => ({ ...prev, nome: apenasLetras }));
     }
-    // 🔢 MÁSCARA DO CPF
+    // Regra: Máscara visual do CPF (000.000.000-00)
     else if (name === "cpf") {
       const cpfMascarado = value
         .replace(/\D/g, "") 
         .replace(/(\d{3})(\d)/, "$1.$2") 
         .replace(/(\d{3})(\d)/, "$1.$2") 
         .replace(/(\d{3})(\d{1,2})$/, "$1-$2"); 
-      setFormData({ ...formData, cpf: cpfMascarado });
+      setFormData((prev) => ({ ...prev, cpf: cpfMascarado }));
     } 
-    // DEMAIS CAMPOS
+    // Para todos os outros campos comuns (email, senha, cep), usamos o handleChange padrão do Hook!
     else {
-      setFormData({ ...formData, [name]: value });
+      handleChange(e);
     }
     
+    // Limpa o erro do campo que está sendo digitado
     if (erros[name]) {
       setErros({ ...erros, [name]: "" });
     }
@@ -83,13 +87,13 @@ export default function FormUsuario() {
         setErros(prev => ({ ...prev, cep: "O CEP deve ser um CEP válido." }));
         setFormData(prev => ({ ...prev, logradouro: "", bairro: "", cidade: "" }));
       } else {
+        // Injetando os dados do ViaCEP usando o setFormData do nosso Hook
         setFormData(prev => ({
           ...prev,
           logradouro: dados.logradouro,
           bairro: dados.bairro,
           cidade: `${dados.localidade} - ${dados.uf}`
         }));
-        // Limpa o erro do CEP caso a busca tenha sucesso
         setErros(prev => ({ ...prev, cep: "" }));
       }
     } catch (error) {
@@ -102,38 +106,30 @@ export default function FormUsuario() {
   const validarFormulario = () => {
     const errosValidacao = {};
 
-    // 1. Nome
-    const regexNome = /^[A-Za-zÀ-ÖØ-öø-ÿ\s]{3,}$/;
     if (!formData.nome.trim()) {
       errosValidacao.nome = "O nome é obrigatório.";
-    } else if (!regexNome.test(formData.nome.trim())) {
+    } else if (!/^[A-Za-zÀ-ÖØ-öø-ÿ\s]{3,}$/.test(formData.nome.trim())) {
       errosValidacao.nome = "Nao pode ter menos de 3 letras e nao pode ter numeros ou caracteres especiais.";
     }
 
-    // 2. CPF
     if (!formData.cpf) {
       errosValidacao.cpf = "O CPF é obrigatório.";
     } else if (!validarCPF(formData.cpf)) {
       errosValidacao.cpf = "Deve ser um CPF valido.";
     }
 
-    // 3. Email
-    const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email.trim()) {
       errosValidacao.email = "O e-mail é obrigatório.";
-    } else if (!regexEmail.test(formData.email.trim())) {
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
       errosValidacao.email = "Deve ser um email valido.";
     }
 
-    // 4. Senha
-    const regexSenhaForte = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._-])[A-Za-z\d@$!%*?&._-]{6,}$/;
     if (!formData.senha) {
       errosValidacao.senha = "A senha é obrigatória.";
-    } else if (!regexSenhaForte.test(formData.senha)) {
+    } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._-])[A-Za-z\d@$!%*?&._-]{6,}$/.test(formData.senha)) {
       errosValidacao.senha = "Deve ter numeros, letras (maiusculas e minusculas) e um caractere especial.";
     }
 
-    // 5. CEP (Validado com base nos dígitos numéricos digitados)
     const cepLimpo = formData.cep.replace(/\D/g, "");
     if (!formData.cep) {
       errosValidacao.cep = "O CEP é obrigatório.";
@@ -150,91 +146,77 @@ export default function FormUsuario() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Limpa feedbacks de tentativas anteriores
-    setFeedback({ texto: "", tipo: "" });
+    limparFeedback();
 
     if (!validarFormulario()) return;
 
     try {
-      // Envia o formData original para a sua API em Node.js vinculada ao MySQL
       await axios.post("http://localhost:3001/usuarios", formData);
       
-      // 🔄 ALTERADO: Armazena o aviso de sucesso no estado de feedback
-      setFeedback({ texto: `Usuário ${formData.nome} cadastrado com sucesso!`, tipo: "sucesso" });
+      mostrarFeedback(`Usuário ${formData.nome} cadastrado com sucesso!`, "sucesso");
       
-      setFormData({ nome: "", cpf: "", email: "", senha: "", cep: "", logradouro: "", bairro: "", cidade: "" });
-      
-      // Apaga o aviso verde da tela após 4 segundos
-      setTimeout(() => setFeedback({ texto: "", tipo: "" }), 4000);
+      // 4. Resetar todos os campos do formulário usando a função do Hook
+      resetForm();
     } catch (error) {
       console.error("Erro ao salvar usuário:", error);
-      // 🔄 ALTERADO: Armazena o aviso de erro no estado de feedback
-      setFeedback({ texto: "Erro ao conectar com o banco de dados. O usuário não foi cadastrado.", tipo: "erro" });
+      mostrarFeedback("Erro ao conectar com o banco de dados. O usuário não foi cadastrado.", "erro");
     }
   };
 
   return (
     <div className="container">
-      {/* ALTERADO: Adicionado noValidate para desativar validações padrão do navegador */}
       <form onSubmit={handleSubmit} className="form-cadastro" style={{ marginTop: "30px", color: "#141414" }} noValidate>
         <h2 style={{ textAlign: 'center', margin: "0 0 10px 0" }}>Cadastro de Usuário</h2>
         
-        {/* 🔄 ADICIONADO: Renderiza o alerta contextual embutido de sucesso ou erro */}
         {feedback.texto && (
           <div className={`alerta-container alerta-${feedback.tipo}`}>
             {feedback.texto}
           </div>
         )}
         
-        {/* Campo Nome */}
         <div style={{ width: '100%' }}>
           <input 
             type="text" name="nome" placeholder="Nome Completo" 
-            value={formData.nome} onChange={handleChange} style={{ width: '100%', boxSizing: 'border-box' }}
+            value={formData.nome} onChange={handleInputChange} style={{ width: '100%', boxSizing: 'border-box' }}
           />
           {erros.nome && <span className="erro-texto">{erros.nome}</span>}
         </div>
 
-        {/* Campo CPF */}
         <div style={{ width: '100%' }}>
           <input 
             type="text" name="cpf" placeholder="CPF" 
-            value={formData.cpf} onChange={handleChange} maxLength="14"
+            value={formData.cpf} onChange={handleInputChange} maxLength="14"
             style={{ width: '100%', boxSizing: 'border-box' }}
           />
           {erros.cpf && <span className="erro-texto">{erros.cpf}</span>}
         </div>
 
-        {/* Campo E-mail */}
         <div style={{ width: '100%' }}>
           <input 
             type="email" name="email" placeholder="E-mail" 
-            value={formData.email} onChange={handleChange} style={{ width: '100%', boxSizing: 'border-box' }}
+            value={formData.email} onChange={handleInputChange} style={{ width: '100%', boxSizing: 'border-box' }}
           />
           {erros.email && <span className="erro-texto">{erros.email}</span>}
         </div>
 
-        {/* Campo Senha */}
         <div style={{ width: '100%' }}>
           <input 
             type="password" name="senha" placeholder="Senha" 
-            value={formData.senha} onChange={handleChange} style={{ width: '100%', boxSizing: 'border-box' }}
+            value={formData.senha} onChange={handleInputChange} style={{ width: '100%', boxSizing: 'border-box' }}
           />
           {erros.senha && <span className="erro-texto">{erros.senha}</span>}
         </div>
 
-        {/* Campo CEP */}
         <div style={{ width: '100%' }}>
           <input 
             type="text" name="cep" placeholder="CEP" 
-            value={formData.cep} onChange={handleChange} onBlur={handleCepBlur} maxLength="9"
+            value={formData.cep} onChange={handleInputChange} onBlur={handleCepBlur} maxLength="9"
             style={{ width: '100%', boxSizing: 'border-box' }}
           />
           {carregandoCep && <span style={{ color: "#0D21A1", fontSize: "12px", display: "block", marginTop: "4px" }}>Buscando CEP...</span>}
           {erros.cep && <span className="erro-texto">{erros.cep}</span>}
         </div>
 
-        {/* Caixa com endereço do ViaCEP */}
         {formData.logradouro && (
           <div className="endereco-box">
             <p style={{ margin: "4px 0" }}><strong>Rua:</strong> {formData.logradouro}</p>
