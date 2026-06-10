@@ -1,70 +1,231 @@
-# Getting Started with Create React App.
+# CineFlow - Sistema de Cadastro de Filmes
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Integrantes
 
-## Available Scripts
+* Matheus Gomes da Rosa
+* (Adicionar demais integrantes)
 
-In the project directory, you can run:
+---
 
-### `npm start`
+## Tecnologias Utilizadas
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### Frontend
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+* React
+* Axios
 
-### `npm test`
+### Backend
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+* Node.js
+* Express
+* Cors
+* MySQL2
 
-### `npm run build`
+### Banco de Dados
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+* MySQL
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+---
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Configuração do Banco de Dados
 
-### `npm run eject`
+Execute o script SQL abaixo no MySQL Workbench:
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```sql
+DROP DATABASE IF EXISTS Cineflow;
+CREATE DATABASE IF NOT EXISTS Cineflow;
+USE Cineflow;
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+-- =========================
+-- TABELA DE USUÁRIOS
+-- =========================
+CREATE TABLE usuario (
+    id_usuario INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    cpf VARCHAR(14) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    endereco VARCHAR(200) NOT NULL,
+    senha_hash VARCHAR(255) NOT NULL
+);
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+-- =========================
+-- TABELA DE FILMES
+-- =========================
+CREATE TABLE filme (
+    id_filme INT AUTO_INCREMENT PRIMARY KEY,
+    titulo VARCHAR(150) NOT NULL,
+    ano YEAR NOT NULL,
+    genero VARCHAR(50) NOT NULL,
+    capa LONGBLOB
+);
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+---
 
-## Learn More
+## Configuração da Conexão com o Banco
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Arquivo:
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```text
+backend/db.js
+```
 
-### Code Splitting
+Configurar conforme o MySQL instalado na máquina:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+```js
+const mysql = require('mysql2');
 
-### Analyzing the Bundle Size
+const conexao = mysql.createConnection({
+    host: 'localhost',
+    port: 3306,
+    user: 'root',
+    password: 'SUA_SENHA_MYSQL',
+    database: 'Cineflow'
+});
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+conexao.connect((erro) => {
+    if (erro) {
+        console.log('Erro ao conectar:', erro);
+    } else {
+        console.log('Conectado ao MySQL');
+    }
+});
 
-### Making a Progressive Web App
+module.exports = conexao;
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+---
 
-### Advanced Configuration
+## Instalação das Dependências
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+### Frontend
 
-### Deployment
+Na pasta principal:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+```bash
+npm install
+```
 
-### `npm run build` fails to minify
+### Backend
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Entrar na pasta backend:
+
+```bash
+cd backend
+```
+
+Instalar dependências:
+
+```bash
+npm install express cors mysql2
+```
+
+---
+
+## Executando o Projeto
+
+### Iniciar Backend
+
+Abrir um terminal:
+
+```bash
+cd backend
+node server.js
+```
+
+Resultado esperado:
+
+```text
+Servidor rodando na porta 3001
+Conectado ao MySQL
+```
+
+---
+
+### Iniciar Frontend
+
+Abrir outro terminal:
+
+```bash
+npm start
+```
+
+O React abrirá automaticamente em:
+
+```text
+http://localhost:3000
+```
+
+---
+
+## Funcionalidades
+
+### Cadastro de Filmes
+
+Permite cadastrar:
+
+* Título
+* Ano
+* Gênero
+* Capa (imagem armazenada em LONGBLOB)
+
+Os dados são gravados na tabela:
+
+```sql
+filme
+```
+
+---
+
+### Cadastro de Usuários
+
+Permite cadastrar:
+
+* Nome
+* CPF
+* E-mail
+* Senha
+* CEP
+
+O endereço é preenchido automaticamente através da API ViaCEP.
+
+Os dados são gravados na tabela:
+
+```sql
+usuario
+```
+
+---
+
+## Testes da API
+
+Listar filmes:
+
+```text
+http://localhost:3001/filmes
+```
+
+Listar usuários:
+
+```text
+http://localhost:3001/usuarios
+```
+
+---
+
+## Estrutura do Projeto
+
+```text
+cineflow/
+│
+├── src/
+├── public/
+├── package.json
+│
+├── backend/
+│   ├── db.js
+│   ├── server.js
+│   └── package.json
+│
+└── cineflow.sql
+```
