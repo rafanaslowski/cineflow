@@ -68,6 +68,7 @@ Instalar dependências:
 
 ```bash
 npm install express cors mysql2
+npm install bcryptjs jsonwebtoken
 ```
 
 ---
