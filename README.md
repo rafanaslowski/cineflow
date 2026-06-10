@@ -2,8 +2,12 @@
 
 ## Integrantes
 
+* Gabriel Igeski Donato
 * Matheus Gomes da Rosa
-* (Adicionar demais integrantes)
+* Pedro Henrique Alves de Souza Fagundes
+* Rafael Luis Naslowski da Silva
+
+
 
 ---
 
@@ -32,6 +36,8 @@
 Execute o script SQL abaixo no MySQL Workbench:
 
 ```sql
+-- Criar banco de dados
+
 DROP DATABASE IF EXISTS Cineflow;
 CREATE DATABASE IF NOT EXISTS Cineflow;
 USE Cineflow;
@@ -48,6 +54,7 @@ CREATE TABLE usuario (
     senha_hash VARCHAR(255) NOT NULL
 );
 
+
 -- =========================
 -- TABELA DE FILMES
 -- =========================
@@ -58,7 +65,26 @@ CREATE TABLE filme (
     genero VARCHAR(50) NOT NULL,
     capa LONGBLOB
 );
-```
+
+
+
+
+
+-- =========================
+-- DADOS DE TESTE
+-- =========================
+USE Cineflow;
+
+SHOW TABLES;
+
+DESCRIBE usuario;
+
+SHOW TABLES;
+SELECT * FROM usuario;
+SELECT * FROM filme;
+
+
+
 
 ---
 
@@ -69,27 +95,6 @@ Arquivo:
 ```text
 backend/db.js
 ```
-
-Configurar conforme o MySQL instalado na máquina:
-
-```js
-const mysql = require('mysql2');
-
-const conexao = mysql.createConnection({
-    host: 'localhost',
-    port: 3306,
-    user: 'root',
-    password: 'SUA_SENHA_MYSQL',
-    database: 'Cineflow'
-});
-
-conexao.connect((erro) => {
-    if (erro) {
-        console.log('Erro ao conectar:', erro);
-    } else {
-        console.log('Conectado ao MySQL');
-    }
-});
 
 module.exports = conexao;
 ```
