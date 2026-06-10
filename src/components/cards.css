@@ -40,7 +40,6 @@
 }
 
 /* Customização do estado logado para o Layout do RA3 */
-
 .usuario-logado-tag {
   color: #00ff88;
   font-size: 14px;
@@ -64,4 +63,32 @@
 
 .btn-sair:hover {
   background-color: #b80710; /* Tom mais escuro no hover */
+}
+
+/* 📱 MODIFICAÇÃO RESPONSIVA EXCLUSIVA DO CARDS.CSS (Inserida no final) */
+@media (max-width: 768px) {
+  .movie-card {
+    width: 100%;
+    max-width: 260px;
+    margin: 10px auto;
+  }
+
+  .membro-card {
+    width: 100%;
+    max-width: 220px;
+    margin: 10px auto;
+  }
+
+  .usuario-logado-tag {
+    margin-left: 0 !important;
+    margin-right: 0;
+    text-align: center;
+    padding: 5px 0;
+  }
+
+  .btn-sair {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+  }
 }
