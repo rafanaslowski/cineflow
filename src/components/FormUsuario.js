@@ -1,11 +1,10 @@
 import { useState } from "react";
 import axios from "axios";
 import { useFeedback } from "../hooks/useFeedback";
-// 1. Importar o hook useForm
 import { useForm } from "../hooks/useForm";
+import { useErrors } from "../hooks/useErrors";
 
 export default function FormUsuario() {
-  // 2. Inicializar o useForm com os campos do usuário
   const { formData, setFormData, handleChange, resetForm } = useForm({
     nome: "",
     cpf: "",
@@ -17,20 +16,17 @@ export default function FormUsuario() {
     cidade: ""
   });
 
-  const [erros, setErros] = useState({});
+  const { erros, setErros, limparErroCampo, limparTodosErros } = useErrors();
   const [carregandoCep, setCarregandoCep] = useState(false);
   const { feedback, mostrarFeedback, limparFeedback } = useFeedback();
 
-  // 3. Criamos uma função customizada de mudança para interceptar as regras do Nome e CPF
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     
-    // Regra: Bloquear números e caracteres especiais no nome
     if (name === "nome") {
       const apenasLetras = value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s]/g, "");
       setFormData((prev) => ({ ...prev, nome: apenasLetras }));
     }
-    // Regra: Máscara visual do CPF (000.000.000-00)
     else if (name === "cpf") {
       const cpfMascarado = value
         .replace(/\D/g, "") 
@@ -39,40 +35,32 @@ export default function FormUsuario() {
         .replace(/(\d{3})(\d{1,2})$/, "$1-$2"); 
       setFormData((prev) => ({ ...prev, cpf: cpfMascarado }));
     } 
-    // Para todos os outros campos comuns (email, senha, cep), usamos o handleChange padrão do Hook!
     else {
       handleChange(e);
     }
     
-    // Limpa o erro do campo que está sendo digitado
-    if (erros[name]) {
-      setErros({ ...erros, [name]: "" });
-    }
+    // Remove a mensagem vermelha assim que o usuário digita
+    limparErroCampo(name);
   };
 
   const validarCPF = (cpf) => {
     const cpfLimpo = cpf.replace(/\D/g, "");
-
     if (cpfLimpo.length !== 11 || /^(\d)\1{10}$/.test(cpfLimpo)) return false;
-
     let soma = 0;
     for (let i = 0; i < 9; i++) soma += parseInt(cpfLimpo.charAt(i)) * (10 - i);
     let resto = 11 - (soma % 11);
     let digitoVerificador1 = resto === 10 || resto === 11 ? 0 : resto;
     if (digitoVerificador1 !== parseInt(cpfLimpo.charAt(9))) return false;
-
     soma = 0;
     for (let i = 0; i < 10; i++) soma += parseInt(cpfLimpo.charAt(i)) * (11 - i);
     resto = 11 - (soma % 11);
     let digitoVerificador2 = resto === 10 || resto === 11 ? 0 : resto;
     if (digitoVerificador2 !== parseInt(cpfLimpo.charAt(10))) return false;
-
     return true;
   };
 
   const handleCepBlur = async () => {
     const cepLimpo = formData.cep.replace(/\D/g, "");
-    
     if (cepLimpo.length !== 8) {
       setErros(prev => ({ ...prev, cep: "O CEP deve conter 8 dígitos." }));
       return;
@@ -87,14 +75,13 @@ export default function FormUsuario() {
         setErros(prev => ({ ...prev, cep: "O CEP deve ser um CEP válido." }));
         setFormData(prev => ({ ...prev, logradouro: "", bairro: "", cidade: "" }));
       } else {
-        // Injetando os dados do ViaCEP usando o setFormData do nosso Hook
         setFormData(prev => ({
           ...prev,
           logradouro: dados.logradouro,
           bairro: dados.bairro,
           cidade: `${dados.localidade} - ${dados.uf}`
         }));
-        setErros(prev => ({ ...prev, cep: "" }));
+        limparErroCampo("cep");
       }
     } catch (error) {
       console.error("Erro ao buscar o CEP:", error);
@@ -145,17 +132,14 @@ export default function FormUsuario() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     limparFeedback();
+    limparTodosErros();
 
     if (!validarFormulario()) return;
 
     try {
       await axios.post("http://localhost:3001/usuarios", formData);
-      
       mostrarFeedback(`Usuário ${formData.nome} cadastrado com sucesso!`, "sucesso");
-      
-      // 4. Resetar todos os campos do formulário usando a função do Hook
       resetForm();
     } catch (error) {
       console.error("Erro ao salvar usuário:", error);
