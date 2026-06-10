@@ -37,15 +37,9 @@ export default function App() {
               } 
             />
 
-            {/* 3. ADICIONADO: Rota Protegida e com Header para o Cadastro de Usuários */}
-            <Route 
-              path="cadastro-usuario" 
-              element={
-                <PrivateRoute>
-                  <UsuarioPage />
-                </PrivateRoute>
-              } 
-            />
+            {/* 3. ALTERADO: Rota de Cadastro de Usuários agora é PÚBLICA (Sem o PrivateRoute) */}
+            <Route path="cadastro-usuario" element={<UsuarioPage />} />
+            
           </Route>
         </Routes>
       </BrowserRouter>

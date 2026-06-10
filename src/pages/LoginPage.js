@@ -12,21 +12,20 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const { loginSecreto } = useContext(AuthContext);
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    
-    // MODIFICADO: Agora chamamos o método do AuthContext (Slide 09)
-    const logadoComSucesso = loginSecreto(email, senha);
+// ADICIONADO O ASYNC AQUI
+const handleLogin = async (e) => {
+  e.preventDefault();
+  
+  // ADICIONADO O AWAIT AQUI (Espera o Axios ir no MySQL e voltar)
+  const logadoComSucesso = await loginSecreto(email, senha);
 
-    if (logadoComSucesso) {
-      alert("Login realizado com sucesso via Contexto Global!");
-      
-      // ALTERADO: Redireciona o usuário direto para a página de Cadastro, que antes estava bloqueada!
-      navigate("/cadastro"); 
-    } else {
-      alert("E-mail ou senha incorretos!");
-    }
-  };
+  if (logadoComSucesso) {
+    alert("Login realizado com sucesso via Contexto Global!");
+    navigate("/cadastro"); 
+  } else {
+    alert("E-mail ou senha incorretos!");
+  }
+};
 
   return (
     <div className="container">

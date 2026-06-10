@@ -24,7 +24,7 @@ export default function FormUsuario() {
       const apenasLetras = value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s]/g, "");
       setFormData({ ...formData, nome: apenasLetras });
     }
-    // 🔢 MÁSCARA DO CPF
+    // MÁSCARA DO CPF
     else if (name === "cpf") {
       const cpfMascarado = value
         .replace(/\D/g, "") 
@@ -144,19 +144,21 @@ export default function FormUsuario() {
     return Object.keys(errosValidacao).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validarFormulario()) return;
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!validarFormulario()) return;
 
-    try {
-      await axios.post("http://localhost:3001/usuarios", formData);
-      alert(`Usuário ${formData.nome} cadastrado com sucesso no db.json!`);
-      setFormData({ nome: "", cpf: "", email: "", senha: "", cep: "", logradouro: "", bairro: "", cidade: "" });
-    } catch (error) {
-      console.error("Erro ao salvar usuário:", error);
-      alert("Erro ao conectar com o banco de dados local.");
-    }
-  };
+  try {
+    // Envia o formData original. O backend já espera logradouro, bairro, cidade e senha!
+    await axios.post("http://localhost:3001/usuarios", formData);
+    
+    alert(`Usuário ${formData.nome} cadastrado com sucesso!`);
+    setFormData({ nome: "", cpf: "", email: "", senha: "", cep: "", logradouro: "", bairro: "", cidade: "" });
+  } catch (error) {
+    console.error("Erro ao salvar usuário:", error);
+    alert("Erro ao conectar com o banco de dados local.");
+  }
+};
 
   return (
     <div className="container">
